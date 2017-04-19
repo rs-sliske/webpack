@@ -8,17 +8,21 @@ const path = require('path');
 const StatsPlugin = require('stats-webpack-plugin');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const PurifyCSSPlugin = require('purifycss-webpack');
+const WebpackAssetsManifest = require('webpack-assets-manifest');
 
 var config = {
 	entry: {
 		app: [
 			'./src/js/app.js',
 			'./src/css/app.scss',
-		]
+		],
+		vendor: [
+			'vue',
+		],
 	},
 	output: {
-		path: __dirname + '/bin',
-		filename: '[name].js',
+		path: __dirname + '/dist',
+		filename: '[name].[chunkhash].js',
 	},
 	module:{
 		rules: [
@@ -65,11 +69,7 @@ var config = {
 		],
 	},
 	plugins: [
-		new StatsPlugin('manifest.json', {
-			assets: true,
-		}),
-
-		new ExtractTextPlugin("[name].css"),
+		new ExtractTextPlugin("[name].[chunkhash].css"),
 
 		new PurifyCSSPlugin({
 			paths: glob.sync(path.join(__dirname, './*.html')),
@@ -78,6 +78,17 @@ var config = {
 
 		new webpack.LoaderOptionsPlugin({
 			minimize: inProduction,
+		}),
+
+		new WebpackAssetsManifest({
+			output: 'manifest.json',
+			replacer: null,
+			space: 2,
+			writeToDisk: false,
+			fileExtRegex: /\.\w{2,4}\.(?:map|gz)$|\.\w+$/i,
+			sortManifest: true,
+			merge: false,
+			publicPath: '/dist/'
 		})
 	],
 }
